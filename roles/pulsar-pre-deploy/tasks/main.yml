@@ -1,0 +1,51 @@
+#
+# Copyright (c) 2018 Sijie. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+---
+
+- name: Check if pulsar package exists
+  stat:
+    path: "{{ pulsar_pkg_dir }}"
+  register: pulsar_pkg_details
+
+- name: cp java rpm to server
+  copy:
+    src: "{{ download_dir}}/jdk-{{ jdk_version }}_linux-x64_bin.rpm"
+    dest: "/tmp/jdk-{{ jdk_version }}_linux-x64_bin.rpm"
+
+- name: install  java rpm
+  become: yes
+  yum:
+    name: "/tmp/jdk-{{ jdk_version }}_linux-x64_bin.rpm"
+    state: present
+
+- name: Install pulsar package
+  unarchive:
+    src: "{{ download_dir }}/pulsar-{{ pulsar_version }}.tar.gz"
+    dest: "{{ pulsar_dir }}/packages"
+  when: not pulsar_pkg_details.stat.exists
+
+- name: Create pulsar log diretory symlink
+  file:
+    src: "{{ pulsar_dir }}/logs"
+    dest: "{{ pulsar_pkg_dir }}/logs"
+    state: link
+
+- name: Create pulsar data diretory symlink
+  file:
+    src: "{{ pulsar_dir }}/data"
+    dest: "{{ pulsar_pkg_dir }}/data"
+    state: link

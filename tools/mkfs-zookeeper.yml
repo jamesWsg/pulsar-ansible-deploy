@@ -1,0 +1,16 @@
+---
+- hosts: zookeeper
+  become: yes
+  gather_facts: false
+  vars:
+    - fstype: ext4
+    - zk_data_device: /dev/disk/by-partlabel/zk-data
+    - zk_txlog_device: /dev/disk/by-partlabel/zk-txlog
+  tasks:
+    - name: Create fs "{{ fstype }}"  in zk_data_device zk_txlog_device
+      filesystem:
+        dev: "{{ item }}"
+        fstype: "{{ fstype }}"
+      with_items:
+      - "{{ zk_data_device }}"
+      - "{{ zk_txlog_device }}"

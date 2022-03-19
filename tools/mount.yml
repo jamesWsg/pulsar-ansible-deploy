@@ -1,0 +1,20 @@
+---
+
+- hosts: all
+  become: yes
+  gather_facts: false
+  tasks:
+
+    - name: Create mount path "{{ mount_path }}"
+      file:
+        path: "{{ mount_path }}"
+        state: directory
+        owner: "{{ username }}"
+        group: "{{ username }}"
+
+    - name: mount device "{{ device }}" to path "{{ mount_path }}" fs "{{ fstype }}"
+      mount:
+        path: "{{ mount_path }}"
+        src: "{{ device }}"
+        fstype: "{{ fstype }}"
+        state: mounted

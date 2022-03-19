@@ -1,0 +1,24 @@
+---
+
+- hosts: bookies
+  become: yes
+  gather_facts: false
+  vars: 
+    - fstype: ext4
+    - bookie_journal_device: /dev/disk/by-partlabel/journal-0
+    - bookie_ledgers_device: /dev/disk/by-partlabel/ledgers-0
+    - bookie_journal_device1: /dev/disk/by-partlabel/journal-1
+    - bookie_ledgers_device1: /dev/disk/by-partlabel/ledgers-1
+  tasks:
+    - debug: var=fstype
+    - name: Create fs "{{ fstype }}" in "{{ item }}"
+      filesystem:
+        dev: "{{ item }}"
+        fstype: "{{ fstype }}"
+      with_items:
+      - "{{ bookie_journal_device }}"
+      - "{{ bookie_ledgers_device }}"
+      - "{{ bookie_journal_device1 }}"
+      - "{{ bookie_ledgers_device1 }}"
+
+

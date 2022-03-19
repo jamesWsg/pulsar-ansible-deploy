@@ -1,0 +1,30 @@
+---
+
+- hosts: all
+  become: yes
+  gather_facts: false
+  tasks:
+
+
+    - name: Read device "{{ device }}" information (always use unit when probing)
+      parted: 
+        device: "{{ device }}" 
+        unit: GiB
+      register: device_info
+
+    - debug: vars = "{{ device_info }}"
+      
+    - name: Create partition in device "{{ device }}"
+      parted:
+        device: "{{ device }}"
+        number: 1
+        label: gpt
+        name: pulsar-data
+        state: present
+
+
+    - name: Create fs "{{ fstype }}"  in partition "{{ device }}"
+      filesystem:
+        dev: "{{ device }}"
+        fstype: "{{ fstype }}"
+

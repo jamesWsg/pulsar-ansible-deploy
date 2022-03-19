@@ -1,0 +1,50 @@
+#
+# Copyright (c) 2018 Sijie. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+---
+
+- name: Create alertmanager directories
+  file: path={{ item }} state=directory mode=0755
+  with_items:
+    - "{{ alertmanager_data_dir }}"
+    - "{{ alertmanager_log_dir }}"
+
+- name: Install alertmanager package
+  unarchive:
+    src: "{{ download_dir }}/alertmanager-{{ alertmanager_version }}.tar.gz"
+    dest: "{{ pulsar_dir }}/packages"
+
+- name: Copy alertmanager binary
+  shell: >
+    cp -v "`ls {{ pulsar_dir }}/packages/alertmanager-{{ alertmanager_version }}*/alertmanager`" "{{ monitoring_dir }}/bin/"
+
+- name: Create alertmanager configuration file
+  template:
+    src: alertmanager.yml.j2
+    dest: "{{ monitoring_dir }}/conf/alertmanager.yml"
+    mode: "0644"
+    backup: yes
+  register: alertmanager_conf_st
+
+- name: Backup alertmanager configuration file
+  command: mv "{{ alertmanager_conf_st.backup_file }}" "{{ pulsar_dir }}/backup"
+  when: alertmanager_conf_st.changed and alertmanager_conf_st.backup_file is defined
+
+- include_tasks: "{{ deployment_method }}_deployment.yml"
+
+- name: Clean up alertmanager package
+  shell: >
+    cd {{ pulsar_dir }}/packages && rm -r alertmanager-{{ alertmanager_version }}*

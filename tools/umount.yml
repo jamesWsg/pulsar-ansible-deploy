@@ -1,0 +1,30 @@
+---
+
+- hosts: bookies
+  become: yes
+  gather_facts: false
+  vars: 
+    - pulsar_dir: "/opt/pulsar"
+    - pulsar_zk_data_dir: "/opt/pulsar/data/zookeeper"
+    - pulsar_zk_txlog_dir: "/opt/pulsar/data/zookeeper/txlog"
+    - pulsar_bookie_journal_dir: "{{ pulsar_dir }}/data/bookkeeper/journal-0"
+    - pulsar_bookie_ledgers_dir: "{{ pulsar_dir }}/data/bookkeeper/ledgers-0"
+    - pulsar_bookie_journal_dir1: "{{ pulsar_dir }}/data/bookkeeper/journal-1"
+    - pulsar_bookie_ledgers_dir1: "{{ pulsar_dir }}/data/bookkeeper/ledgers-1" 
+  tasks:
+    - name: umount  "{{ item }}"
+      mount:
+        path: "{{ item }}"
+        #src: "{{ device }}"
+        #fstype: "{{ fstype }}"
+        #state: absent
+        state: unmounted
+        #state: mounted
+      with_items:
+        - "{{ pulsar_zk_data_dir }}"
+        - "{{ pulsar_zk_txlog_dir }}"
+        - "{{ pulsar_bookie_journal_dir }}"        
+        - "{{ pulsar_bookie_ledgers_dir }}"
+        - "{{ pulsar_bookie_journal_dir1 }}"        
+        - "{{ pulsar_bookie_ledgers_dir1 }}"
+

@@ -1,0 +1,18 @@
+---
+
+- hosts: all
+  become: yes
+  gather_facts: false
+  tasks:
+
+
+    - name:  batch packages install
+      yum:
+        name: "{{ packages }}"
+        state: present
+        #state: removed
+      vars:
+        packages:
+        - gdisk
+        - telnet
+            

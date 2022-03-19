@@ -1,0 +1,55 @@
+#
+# Copyright (c) 2018 Sijie. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+---
+
+# pulsar common tasks
+
+- name: set zookeeper_service_vip_name if defined
+  set_fact:
+    zookeeper_servers: "{{ zookeeper_service_vip_name }}"
+  when: zookeeper_service_vip_name is defined
+
+- name: generate zookeeper_service_vip_name when zookeeper_service_vip_name is not defined
+  set_fact:
+    zookeeper_servers: "{{ groups.zookeeper | map('regex_replace', '^(.*)$', '\\1:2181') | join(',') }}"
+  when: zookeeper_service_vip_name is not defined
+
+- debug: var=zookeeper_servers
+
+  #- name: change broker ports if proxy is co-run with broker
+  #set_fact:
+  #  broker_port: "{{ proxy_port | int + 1 }}"
+  #  broker_http_port: "{{ proxy_http_port | int + 1 }}"
+  #when: pulsar_proxy_enabled and pulsar_run_proxy_with_broker
+
+- name: generate pulsar_service_vip_name when pulsar_service_vip_name is not defined and proxy is not enabled
+  set_fact:
+    pulsar_service_vip_name: "{{ hostvars[groups.brokers[0]].ansible_host | default(hostvars[groups.brokers[0]].inventory_hostname) if groups.get('brokers', []) else '' }}"
+  when: pulsar_service_vip_name is not defined and not pulsar_proxy_enabled
+
+- name: generate pulsar_service_vip_name when pulsar_service_vip_name is not defined and proxy is enabled
+  set_fact:
+    pulsar_service_vip_name: "{{ hostvars[groups.proxies[0]].ansible_host | default(hostvars[groups.proxies[0]].inventory_hostname) if groups.get('proxies', []) else '' }}"
+  when: pulsar_service_vip_name is not defined and pulsar_proxy_enabled
+
+- debug: var=pulsar_service_vip_name
+
+- name: generate pulsar service urls
+  set_fact:
+    pulsar_service_url: "pulsar://{{ pulsar_service_vip_name }}:{{ proxy_port }}"
+    pulsar_http_url: "http://{{ pulsar_service_vip_name }}:{{ proxy_http_port }}"
+  when: pulsar_service_vip_name is defined

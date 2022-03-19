@@ -1,0 +1,65 @@
+#
+# Copyright (c) 2018 Sijie. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+---
+
+- name: Create bookkeeper ledger directories
+  file:
+    path: "{{ bookie_ledgers_dir }}-{{ item }}"
+    state: directory
+    mode: 0755
+  with_sequence: start=0 count={{ num_ledger_dirs | int }}
+
+- name: Create bookkeeper journal directories
+  file:
+    path: "{{ bookie_journal_dir }}-{{ item }}"
+    state: directory
+    mode: 0755
+  with_sequence: start=0 count={{ num_journal_dirs | int }}
+
+- name: Generate `bookie_ledger_directories` list
+  set_fact:
+    bookie_ledger_directories: "{{ (bookie_ledger_directories | default('')) + ledger_dir_name_template }}"
+  with_sequence: start=0 count={{ num_ledger_dirs | int }}
+  when: bookie_ledger_directories is not defined
+
+- debug: msg={{ bookie_ledger_directories }}
+
+- name: Generate `bookie_journal_directories` list
+  set_fact:
+    bookie_journal_directories: "{{ (bookie_journal_directories | default('')) + journal_dir_name_template }}"
+  with_sequence: start=0 count={{ num_journal_dirs | int }}
+  when: bookie_journal_directories is not defined
+
+- debug: msg={{ bookie_journal_directories }}
+
+- name: Set `bookie_index_directories` variable
+  set_fact: bookie_index_directories={{ bookie_ledger_directories }}
+  when: bookie_index_directories is not defined
+
+- debug: msg={{ bookie_index_directories }}
+
+- name: Copy bookkeeper configuration files
+  template:
+    src: "{{ playbook_dir }}/conf/bookkeeper/{{ item }}.{{ pulsar_version }}.j2"
+    dest: "{{ pulsar_pkg_dir }}/conf/{{ item }}"
+  with_items:
+    - bookkeeper.conf
+
+- include_tasks: "{{ deployment_method }}_deployment.yml"
+
+- include_role:
+    name: pulsar-post-deploy

@@ -1,0 +1,26 @@
+- hosts: all
+  become: yes
+  gather_facts: false
+  tasks:
+
+    - name: Create pulsar dir "{{ pulsar_dir }}"
+      file:
+        path: "{{ pulsar_dir }}"
+        state: directory
+        owner: "{{ username }}"
+        group: "{{ username }}"   
+
+
+    - name: Create pulsar zk data dir "{{ pulsar_zk_data_dir }}"
+      file:
+        path: "{{ pulsar_zk_data_dir }}"
+        state: directory
+        owner: "{{ username }}"
+        group: "{{ username }}"
+
+    - name: Create pulsar zk txlog dir "{{ pulsar_zk_txlog_dir }}"
+      file:
+        path: "{{ pulsar_zk_txlog_dir }}"
+        state: directory
+        owner: "{{ username }}"
+        group: "{{ username }}" 

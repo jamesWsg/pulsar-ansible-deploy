@@ -1,0 +1,10 @@
+---
+
+- import_playbook: playbooks/stop_grafana.yml
+
+- import_playbook: playbooks/stop_prometheus.yml
+
+- import_playbook: playbooks/stop_node_exporter.yml
+- import_playbook: stop_broker.yml
+- import_playbook: stop_bookkeeper.yml
+- import_playbook: stop_metadata_service.yml

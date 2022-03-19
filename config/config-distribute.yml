@@ -1,0 +1,18 @@
+---
+- hosts: brokers
+  vars:
+    - local_conf_name: bookkeeper.conf
+    - target_conf_dir: /opt/pulsar/current/conf
+    - timestamp: "{{lookup('pipe', 'date +%Y%m%d%H%M')}}"
+
+  tasks:
+
+
+    - name: back up "{{ local_conf_name }}" in target host
+      command: mv "{{ target_conf_dir }}/{{ local_conf_name }}" "{{ target_conf_dir }}/{{ local_conf_name }}.{{ timestamp }}"
+
+    - name: distribule conf to target server 
+      copy:
+        src: "{{ playbook_dir }}/{{ local_conf_name }}"
+        dest: "{{ target_conf_dir }}/{{ local_conf_name }}"
+        backup: true

@@ -1,0 +1,137 @@
+
+PLAY [Cluster Initialization] ***************************************************************************************************************
+
+TASK [host-common : Create pulsar directories] **********************************************************************************************
+ok: [172.31.0.200] => (item=/opt/pulsar)
+ok: [172.31.0.250] => (item=/opt/pulsar)
+ok: [172.31.0.218] => (item=/opt/pulsar)
+ok: [172.31.0.200] => (item=/opt/pulsar/logs)
+ok: [172.31.0.250] => (item=/opt/pulsar/logs)
+ok: [172.31.0.218] => (item=/opt/pulsar/logs)
+ok: [172.31.0.200] => (item=/opt/pulsar/services)
+ok: [172.31.0.218] => (item=/opt/pulsar/services)
+ok: [172.31.0.250] => (item=/opt/pulsar/services)
+ok: [172.31.0.200] => (item=/opt/pulsar/backup)
+ok: [172.31.0.218] => (item=/opt/pulsar/backup)
+ok: [172.31.0.250] => (item=/opt/pulsar/backup)
+ok: [172.31.0.218] => (item=/opt/pulsar/status)
+ok: [172.31.0.200] => (item=/opt/pulsar/status)
+ok: [172.31.0.250] => (item=/opt/pulsar/status)
+ok: [172.31.0.200] => (item=/opt/pulsar/packages)
+ok: [172.31.0.218] => (item=/opt/pulsar/packages)
+ok: [172.31.0.250] => (item=/opt/pulsar/packages)
+ok: [172.31.0.200] => (item=/opt/pulsar/data)
+ok: [172.31.0.218] => (item=/opt/pulsar/data)
+ok: [172.31.0.250] => (item=/opt/pulsar/data)
+ok: [172.31.0.200] => (item=/opt/pulsar/data/bookkeeper)
+ok: [172.31.0.218] => (item=/opt/pulsar/data/bookkeeper)
+ok: [172.31.0.250] => (item=/opt/pulsar/data/bookkeeper)
+ok: [172.31.0.200] => (item=/opt/pulsar/data/prometheus)
+ok: [172.31.0.218] => (item=/opt/pulsar/data/prometheus)
+ok: [172.31.0.250] => (item=/opt/pulsar/data/prometheus)
+ok: [172.31.0.200] => (item=/opt/pulsar/monitoring)
+ok: [172.31.0.218] => (item=/opt/pulsar/monitoring)
+ok: [172.31.0.250] => (item=/opt/pulsar/monitoring)
+ok: [172.31.0.200] => (item=/opt/pulsar/monitoring/bin)
+ok: [172.31.0.218] => (item=/opt/pulsar/monitoring/bin)
+ok: [172.31.0.250] => (item=/opt/pulsar/monitoring/bin)
+ok: [172.31.0.218] => (item=/opt/pulsar/monitoring/conf)
+ok: [172.31.0.200] => (item=/opt/pulsar/monitoring/conf)
+ok: [172.31.0.250] => (item=/opt/pulsar/monitoring/conf)
+ok: [172.31.0.218] => (item=/opt/pulsar/monitoring/backup)
+ok: [172.31.0.200] => (item=/opt/pulsar/monitoring/backup)
+ok: [172.31.0.250] => (item=/opt/pulsar/monitoring/backup)
+
+TASK [pulsar-common : set zookeeper_service_vip_name if defined] ****************************************************************************
+skipping: [172.31.0.200]
+skipping: [172.31.0.250]
+skipping: [172.31.0.218]
+
+TASK [pulsar-common : generate zookeeper_service_vip_name when zookeeper_service_vip_name is not defined] ***********************************
+ok: [172.31.0.200]
+ok: [172.31.0.250]
+ok: [172.31.0.218]
+
+TASK [pulsar-common : debug] ****************************************************************************************************************
+ok: [172.31.0.200] => {
+    "zookeeper_servers": "172.31.0.200:2181,172.31.0.250:2181,172.31.0.218:2181"
+}
+ok: [172.31.0.250] => {
+    "zookeeper_servers": "172.31.0.200:2181,172.31.0.250:2181,172.31.0.218:2181"
+}
+ok: [172.31.0.218] => {
+    "zookeeper_servers": "172.31.0.200:2181,172.31.0.250:2181,172.31.0.218:2181"
+}
+
+TASK [pulsar-common : change broker ports if proxy is co-run with broker] *******************************************************************
+ok: [172.31.0.200]
+ok: [172.31.0.250]
+ok: [172.31.0.218]
+
+TASK [pulsar-common : generate pulsar_service_vip_name when pulsar_service_vip_name is not defined and proxy is not enabled] ****************
+skipping: [172.31.0.200]
+skipping: [172.31.0.250]
+skipping: [172.31.0.218]
+
+TASK [pulsar-common : generate pulsar_service_vip_name when pulsar_service_vip_name is not defined and proxy is enabled] ********************
+ok: [172.31.0.200]
+ok: [172.31.0.250]
+ok: [172.31.0.218]
+
+TASK [pulsar-common : debug] ****************************************************************************************************************
+ok: [172.31.0.200] => {
+    "pulsar_service_vip_name": ""
+}
+ok: [172.31.0.250] => {
+    "pulsar_service_vip_name": ""
+}
+ok: [172.31.0.218] => {
+    "pulsar_service_vip_name": ""
+}
+
+TASK [pulsar-common : generate pulsar service urls] *****************************************************************************************
+ok: [172.31.0.200]
+ok: [172.31.0.250]
+ok: [172.31.0.218]
+
+TASK [pulsar-pre-deploy : Check if pulsar package exists] ***********************************************************************************
+ok: [172.31.0.218]
+ok: [172.31.0.250]
+ok: [172.31.0.200]
+
+TASK [pulsar-pre-deploy : Install pulsar package] *******************************************************************************************
+skipping: [172.31.0.200]
+skipping: [172.31.0.250]
+skipping: [172.31.0.218]
+
+TASK [pulsar-pre-deploy : Create pulsar log diretory symlink] *******************************************************************************
+fatal: [172.31.0.200]: FAILED! => {"changed": false, "gid": 0, "group": "root", "mode": "0755", "msg": "refusing to convert from directory to symlink for /opt/pulsar/packages/apache-pulsar-2.9.1/logs", "owner": "root", "path": "/opt/pulsar/packages/apache-pulsar-2.9.1/logs", "size": 24, "state": "directory", "uid": 0}
+changed: [172.31.0.218]
+changed: [172.31.0.250]
+
+TASK [pulsar-pre-deploy : Create pulsar data diretory symlink] ******************************************************************************
+changed: [172.31.0.250]
+changed: [172.31.0.218]
+
+TASK [zookeeper : Create zookeeper directories] *********************************************************************************************
+changed: [172.31.0.250] => (item=/opt/pulsar/data/zookeeper)
+changed: [172.31.0.218] => (item=/opt/pulsar/data/zookeeper)
+changed: [172.31.0.250] => (item=/opt/pulsar/data/zookeeper/txlog)
+changed: [172.31.0.218] => (item=/opt/pulsar/data/zookeeper/txlog)
+
+TASK [zookeeper : Generate zookeeper myid] **************************************************************************************************
+ok: [172.31.0.250]
+ok: [172.31.0.218]
+
+TASK [zookeeper : Copy zookeeper configuration files] ***************************************************************************************
+failed: [172.31.0.250] (item=zookeeper.conf) => {"changed": false, "item": "zookeeper.conf", "msg": "AnsibleUndefinedVariable: 'ansible.vars.hostvars.HostVarsVars object' has no attribute 'zid'"}
+failed: [172.31.0.218] (item=zookeeper.conf) => {"changed": false, "item": "zookeeper.conf", "msg": "AnsibleUndefinedVariable: 'ansible.vars.hostvars.HostVarsVars object' has no attribute 'zid'"}
+failed: [172.31.0.250] (item=zookeeper.conf.dynamic) => {"changed": false, "item": "zookeeper.conf.dynamic", "msg": "AnsibleUndefinedVariable: 'ansible.vars.hostvars.HostVarsVars object' has no attribute 'zid'"}
+failed: [172.31.0.218] (item=zookeeper.conf.dynamic) => {"changed": false, "item": "zookeeper.conf.dynamic", "msg": "AnsibleUndefinedVariable: 'ansible.vars.hostvars.HostVarsVars object' has no attribute 'zid'"}
+	to retry, use: --limit @/home/pulsar/apache-pulsar-ansible/retry_files/cluster_initialize.retry
+
+PLAY RECAP **********************************************************************************************************************************
+172.31.0.200               : ok=8    changed=0    unreachable=0    failed=1   
+172.31.0.218               : ok=12   changed=3    unreachable=0    failed=1   
+172.31.0.250               : ok=12   changed=3    unreachable=0    failed=1   
+
