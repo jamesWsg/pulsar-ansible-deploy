@@ -16,33 +16,33 @@
 
 ---
 
-- hosts: proxies
+- hosts: brokers
   tags:
-    - proxy
+    - broker
   tasks:
     - include_role: name=pulsar-common
     - debug:
-        msg: "proxy_port={{ proxy_port }}, proxy_http_port={{ proxy_http_port }}"
-    - name: Start proxy by systemd
+        msg: "broker_port={{ broker_port }}, broker_http_port={{ broker_http_port }}"
+    - name: Start broker by systemd
       become: true
       systemd:
         name: "{{ item }}.service"
         state: started
-        enabled: no
+        enabled: yes
       when: process_supervision == 'systemd'
       with_items:
-        - proxy
+        - broker
 
-    - name: Wait for proxy up
+    - name: Wait for broker up
       wait_for:
-        port: "{{ proxy_port }}"
+        port: "{{ broker_port }}"
         host: 127.0.0.1
         connect_timeout: 60
         delay: 1
 
-    - name: Wait for proxy http up
+    - name: Wait for bookie http up
       uri:
-        url: "http://127.0.0.1:{{ proxy_http_port }}/metrics"
+        url: "http://127.0.0.1:{{ broker_http_port }}/metrics"
         status_code: 200
       register: result
       until: result.status == 200

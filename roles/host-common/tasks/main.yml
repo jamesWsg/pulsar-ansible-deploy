@@ -25,7 +25,7 @@
     - "{{ pulsar_dir }}/logs"
     - "{{ pulsar_dir }}/services"
     - "{{ pulsar_dir }}/backup"
-    - "{{ pulsar_dir }}/status"
+    #- "{{ pulsar_dir }}/status"
     - "{{ pulsar_dir }}/packages"
     - "{{ pulsar_data_dir }}"
     - "{{ pulsar_data_dir }}/bookkeeper"

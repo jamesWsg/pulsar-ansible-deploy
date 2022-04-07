@@ -7,7 +7,7 @@
 this repo is based on https://github.com/streamnative/apache-pulsar-ansible,  for deploy larger pulsar cluster in production environment (like china union project), mainly include the following function:
 
 - Deploy pulsar cluster
-- Pulsar maitain ( located in `config` directory,  like config collect and distribution,)
+- Pulsar maitain ( located in `tools/configer` directory,  like config collect and distribution,)
 - Some common tools in production environment ( located in `tools` directory ,like disk partition, mkfs, mount and so on )
 
 
@@ -390,6 +390,12 @@ ansible-playbook -i inventory.ini deploy_pulsar_stack.yml
 you can see the complete example as following:
 
 [production deploy example](production-deploy-example.md)
+
+
+
+## more
+
+if you want to know more about this repo，refer [readme for developer](README-for-developer.md)
 
 
 

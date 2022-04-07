@@ -25,7 +25,7 @@
       systemd:
         name: "{{ item }}.service"
         state: started
-        enabled: no
+        enabled: yes
       when: process_supervision == 'systemd'
       with_items:
         - bookie

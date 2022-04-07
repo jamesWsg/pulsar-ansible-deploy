@@ -74,4 +74,3 @@
   ignore_errors: true
   when: tuning_irqbalance_value
 
-- include_tasks: install_packages.yml

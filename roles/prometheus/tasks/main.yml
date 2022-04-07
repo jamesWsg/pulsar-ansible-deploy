@@ -21,7 +21,6 @@
   with_items:
     - "{{ prometheus_data_dir }}"
     - "{{ prometheus_log_dir }}"
-    - "{{ pulsar_dir }}/status/{{ role_name }}"
 
 - name: Install prometheus package
   unarchive:

@@ -16,4 +16,18 @@
 
 ---
 
-pushgateway_port: 9091
+
+- name: Check deployment config
+  hosts: localhost
+  gather_facts: false
+  roles:
+    - config-checker
+
+- name: Check host config
+  hosts: all
+  gather_facts: false
+  become: true
+  roles:
+    - host-system-checker
+    - host-common
+    - host-bootstrap

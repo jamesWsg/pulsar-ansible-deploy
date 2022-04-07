@@ -5,6 +5,11 @@
   gather_facts: false
   vars:
     - fstype: ext4
+    - pulsar_dir: /opt/pulsar
+    - pulsar_zk_data_dir: /opt/pulsar/data/zookeeper
+    - pulsar_zk_txlog_dir: /opt/pulsar/data/zookeeper/txlog
+    - zk_data_device: /dev/disk/by-partlabel/zk-data
+    - zk_txlog_device: /dev/disk/by-partlabel/zk-txlog
   tasks:
 
     - name: mount zk data device

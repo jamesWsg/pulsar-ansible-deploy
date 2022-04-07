@@ -24,7 +24,6 @@
     - "{{ grafana_dashboards_dir }}"
     - "{{ grafana_datasources_dir }}"
     - "{{ grafana_plugins_dir }}"
-    - "{{ pulsar_dir }}/status/{{ role_name }}"
 
 - name: Install grafana package
   unarchive:

@@ -54,4 +54,16 @@
   delay: "{{ retry_stagger | random + 3 }}"
   with_items: "{{ pulsar_packages }}"
 
+- name: Download jdk
+  get_url:
+    url: "{{ item.url }}"
+    dest: "{{ download_dir}}/jdk-{{ jdk_version }}_linux-x64_bin.rpm"
+    force: yes
+  register: get_url_result
+  until: "'OK' in get_url_result.msg or 'file already exists' in get_url_result.msg"
+  retries: 5
+  delay: "{{ retry_stagger | random + 3 }}"
+  with_items: "{{ jdk_packages }}"
+
+
 - include_tasks: "{{ deployment_method }}_deployment.yml"

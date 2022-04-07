@@ -64,6 +64,81 @@ conf
 
 > If you want to deploy pulsar 2.9.1, you should add `bookkeeper.conf.2.9.1.j2`, `broker.conf.2.8.1.j2`,and so on
 
+
+
+## linux kernel parameter
+
+include max openfiles，swapness
+
+```
+- name: Set absent kernel params
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    sysctl_set: yes
+    ignoreerrors: yes
+    state: absent
+  with_items:
+    - { name: 'net.ipv4.tcp_tw_recycle', value: 0 }
+  when: tuning_kernel_parameters
+  
+  
+  - name: Update existing kernel params
+  sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    ignoreerrors: yes
+    state: present
+  with_items:
+    - { name: 'net.core.somaxconn', value: 32768 }
+    - { name: 'vm.swappiness', value: 0 }
+    - { name: 'net.ipv4.tcp_syncookies', value: 0 }
+    - { name: 'fs.file-max', value: 1000000 }
+  when: tuning_kernel_parameters
+  
+```
+
+
+
+文件数的修改
+
+```
+- name: Update /etc/security/limits.conf
+  blockinfile:
+    dest: /etc/security/limits.conf
+    insertbefore: '# End of file'
+    block: |
+      {{ deploy_user }}        soft        nofile        1000000
+      {{ deploy_user }}        hard        nofile        1000000
+      {{ deploy_user }}        soft        stack         10240
+  when: tuning_kernel_parameters
+  
+```
+
+
+
+软中断的修改（只有在配置文件存在的情况下，才修改，加了一层判断）
+
+```
+# modify irqbalance configuration file
+- name: check centos configuration file exists
+  stat: path=/etc/sysconfig/irqbalance
+  register: centos_irq_config_file
+
+- name: modify centos irqbalance configuration file
+  lineinfile:
+    dest=/etc/sysconfig/irqbalance
+    regexp='(?<!_)ONESHOT='
+    line='ONESHOT=yes'
+  when:
+    - tuning_irqbalance_value
+    - centos_irq_config_file.stat.exists
+
+
+```
+
+
+
 # deploy steps
 
 > Deploy step include  main direct  ?????
@@ -78,7 +153,7 @@ conf
 
 ## step1: ansible inventory prepare
 
-Three inventory file should modify
+two inventory file should modify
 
 1. /etc/ansible/hosts
 
@@ -109,59 +184,6 @@ Three inventory file should modify
 
    
 
-2. host.ini.production
-
-   Used for run ansible-playbook , for run some common tools, example conf as following
-
-   ```
-   pulsar@ubuntu20:~/apache-pulsar-ansible$ cat hosts.ini.production
-   [servers]
-   10.2.0.4
-   10.2.0.6
-   10.2.0.7
-   10.2.0.8
-   
-   [brokers]
-   10.2.0.4
-   10.2.0.6
-   10.2.0.7
-   
-   [bookies]
-   10.2.0.4
-   10.2.0.6
-   10.2.0.7
-   
-   [zookeeper]
-   10.2.0.4
-   10.2.0.6
-   10.2.0.7
-   
-   [all:vars]
-   username = pulsar
-   pulsar_dir = /opt/pulsar
-   
-   ## copy
-   
-   ## zk-data zk-txlog device mkfs
-   zk_data_device = /dev/disk/by-partlabel/zk-data
-   zk_txlog_device = /dev/disk/by-partlabel/zk-txlog
-   pulsar_zk_data_dir = /opt/pulsar/data/zookeeper
-   pulsar_zk_txlog_dir = /opt/pulsar/data/zookeeper/txlog
-   
-   ## bookie journal ledgers
-   bookie_journal_device = /dev/disk/by-partlabel/journal-1
-   bookie_ledgers_device = /dev/disk/by-partlabel/ledgers-1
-   pulsar_bookie_journal_dir = {{ pulsar_dir }}/data/bookkeeper/journal-1
-   pulsar_bookie_ledgers_dir = {{ pulsar_dir }}/data/bookkeeper/ledgers-1
-   
-   ## mount
-   device = /dev/sdc
-   fstype = ext4
-   mount_path = /opt/pulsar
-   ```
-
-   
-
 3. inventory.ini (same as quick start use)
 
    Used for run ansible-playbook, for deploy pulsar cluster ,
@@ -169,8 +191,7 @@ Three inventory file should modify
    ```
    pulsar@ubuntu20:~/apache-pulsar-ansible$ cat inventory.ini
    ## Apache Pulsar Cluster
-   [test]
-   172.31.0.218
+   
    [proxies]
    [brokers]
    10.2.0.4
@@ -203,10 +224,10 @@ Three inventory file should modify
    skipped
    ...
    ```
-
    
 
    
+
 
 
 
@@ -215,7 +236,7 @@ Three inventory file should modify
 ## step2: deploy pulsar dir
 
 ```
-ansible-playbook -i hosts.ini.production deploy_pulsar_dir.yml
+ansible-playbook -i inventory.ini deploy_zookeeper_dir.yml
 ```
 
 The command will create `/opt/pulsar` directory(own to pulsar user) in all target host  as following
@@ -263,7 +284,9 @@ drwxr-xr-x. 2 pulsar pulsar  6 Mar 15 13:31 pulsar
    
    ```
 
-   
+   > if want to delete disk partion, use `ansible bookies -m shell -a "sudo sgdisk -z /dev/sdc"`
+   >
+   > 
 
 3. Check the result
 
@@ -288,7 +311,7 @@ drwxr-xr-x. 2 pulsar pulsar  6 Mar 15 13:31 pulsar
 in tools directory 
 
 ```
-pulsar@ubuntu20:~/apache-pulsar-ansible/tools$ ansible-playbook -i ../hosts.ini.production mkfs-zookeeper.yml
+ansible-playbook -i inventory.ini tools/mkfs-zookeeper.yml
 ```
 
 
@@ -297,10 +320,10 @@ pulsar@ubuntu20:~/apache-pulsar-ansible/tools$ ansible-playbook -i ../hosts.ini.
 
 ## step5: mount zookeeper device 
 
-in tools directory 
+
 
 ```
-pulsar@ubuntu20:~/apache-pulsar-ansible/tools$ ansible-playbook -i ../hosts.ini.production mount-zookeeper.yml
+ansible-playbook -i inventory.ini tools/mount-zookeeper.yml
 ```
 
 
@@ -333,19 +356,19 @@ ansible zookeeper -m shell -a "sudo chown -R pulsar:pulsar /opt/pulsar"
 ## step7: deploy zookeeper(metadata service)
 
 ```
-ansible-playbook -i inventory.ini deploy_metadata_service.yml
+ansible-playbook -i inventory.ini deploy_zookeeper.yml
 ```
 
 ## step8: start zookeeper
 
 ```
-ansible-playbook -i inventory.ini start_metadata_service.yml
+ansible-playbook -i inventory.ini playbooks/start_zookeeper.yml
 ```
 
 ## step9: cluster initialize
 
 ```
-ansible-playbook -i inventory.ini cluster_initialize.yml
+ansible-playbook -i inventory.ini deploy_cluster_initialize.yml
 ```
 
 ## step10: deploy bookeeper
@@ -373,18 +396,19 @@ after deploy bookie, it will create the following directory for bookie journal a
 
 1. Mkfs to bookeeper journal and ledger device
 
-   in tools directory 
+   
 
    ```
-   ansible-playbook -i ../hosts.ini.production mkfs-bookeeper.yml
+   
+   ansible-playbook -i inventory.ini tools/mkfs-bookeeper.yml
    ```
-
+   
 2. Mount journal and ledger device
 
-   in tools directory 
-   
    ```
-   ansible-playbook -i ../hosts.ini.production mount-bookeeper.yml
+   
+   ansible-playbook -i inventory.ini tools/mount-bookeeper.yml
+   
    ```
    
 
@@ -432,27 +456,27 @@ If have two or more devices, should repeat the above steps.(need change the host
 
 Because bookie journal and ledger have two directories ,the bookeeper.conf did’t include both direcory， i am not figure it out，so use this step to workaround.
 
-in config directory, get bookeeeper config
+in `tools/configer/` directory, get bookeeeper config
 
 ```
-ansible-playbook -i ../hosts.ini.production bookkeeper-config-get.yml
+ansible-playbook -i ../../inventory.ini bookkeeper-config-get.yml
 ```
 
 the above command will create tmp dir in current dir  as following:
 
 ```
-pulsar@ubuntu20:~/apache-pulsar-ansible/config$ tree tmp/
+pulsar@ansible-control:~/pulsar-ansible-deploy/tools/configer$ tree tmp/
 tmp/
-├── bookkeeper.conf-10.2.0.4
-├── bookkeeper.conf-10.2.0.6
-└── bookkeeper.conf-10.2.0.7
+├── bookkeeper.conf-10.2.0.12
+├── bookkeeper.conf-10.2.0.13
+└── bookkeeper.conf-10.2.0.14
 
 ```
 
 Then modify one of the bookeeper.conf.*  ,then rename to config directory
 
 ```
-pulsar@ubuntu20:~/apache-pulsar-ansible/config$ ll
+pulsar@ansible-control:~/pulsar-ansible-deploy/tools/configer$ ll
 total 64
 drwxrwxr-x  3 pulsar pulsar  4096 Mar 17 13:20 ./
 drwxr-xr-x 17 pulsar pulsar  4096 Mar 17 13:12 ../
@@ -465,7 +489,7 @@ drwxrwxr-x  2 pulsar pulsar  4096 Mar 17 13:12 tmp/
 Then distribute bookeeper.conf to all bookeeper nodes
 
 ```
-ansible-playbook -i ../hosts.ini.production bookkeeper-config-distribute.yml
+ansible-playbook -i ../../inventory.ini bookkeeper-config-distribute.yml
 ```
 
 
@@ -476,8 +500,10 @@ ansible-playbook -i ../hosts.ini.production bookkeeper-config-distribute.yml
 
 ## Step14: start  bookeeper
 
+Back to main directory
+
 ```
-ansible-playbook -i inventory.ini start_bookkeeper.yml
+ansible-playbook -i inventory.ini playbooks/start_bookkeeper.yml
 ```
 
  

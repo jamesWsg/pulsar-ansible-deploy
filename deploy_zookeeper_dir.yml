@@ -1,0 +1,30 @@
+- hosts: all
+  become: yes
+  gather_facts: false
+
+
+  tasks:
+    - include_vars:
+        file=roles/zookeeper/defaults/main.yml
+
+    - name: Create pulsar dir "{{ pulsar_dir }}"
+      file:
+        path: "{{ pulsar_dir }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"   
+
+
+    - name: Create pulsar zk data dir "{{ zookeeper_data_dir }}"
+      file:
+        path: "{{ zookeeper_data_dir }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+
+    - name: Create pulsar zk txlog dir "{{ zookeeper_txlog_dir }}"
+      file:
+        path: "{{ zookeeper_txlog_dir }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}" 
