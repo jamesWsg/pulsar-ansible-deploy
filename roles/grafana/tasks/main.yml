@@ -72,6 +72,7 @@
     - overview
     - proxy
     - zookeeper
+    - node_exporter
 
 - include_tasks: "{{ deployment_method }}_deployment.yml"
 
