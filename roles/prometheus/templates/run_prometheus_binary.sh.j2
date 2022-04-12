@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# Copyright (c) 2018 Sijie. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+set -e
+ulimit -n 1000000
+
+PULSAR_HOME={{ pulsar_dir }}/
+PROMETHEUS_HOME={{ monitoring_dir }}/
+cd "${PROMETHEUS_HOME}" || exit 1
+
+{% set host_ip = hostvars[inventory_hostname].ansible_host | default(hostvars[inventory_hostname].inventory_hostname) -%}
+
+# WARNING: This file was auto-generated. DONT EIDT IT!
+#          All your edits might be overwritten
+exec > >(tee -i -a "{{ prometheus_log_dir }}/{{ prometheus_log_filename }}")
+exec 2>&1
+
+exec bin/prometheus \
+  --config.file="{{ monitoring_dir }}/conf/prometheus.yml" \
+  --web.listen-address=":{{ prometheus_port }}" \
+  --web.external-url="http://{{ host_ip }}:{{ prometheus_port }}/" \
+  --web.enable-admin-api
+  --log.level="{{ prometheus_log_level }}" \
+  --storage.tsdb.path="{{ prometheus_data_dir }}" \
+  --storage.tsdb.retention="{{ prometheus_storage_retention }}"

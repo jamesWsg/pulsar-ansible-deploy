@@ -1,0 +1,78 @@
+#
+# Copyright (c) 2018 Sijie. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+---
+
+- name: Create grafana directories
+  file: path={{ item }} state=directory mode=0755
+  with_items:
+    - "{{ grafana_data_dir }}"
+    - "{{ grafana_log_dir }}"
+    - "{{ grafana_dashboards_dir }}"
+    - "{{ grafana_datasources_dir }}"
+    - "{{ grafana_plugins_dir }}"
+
+- name: Install grafana package
+  unarchive:
+    src: "{{ download_dir }}/grafana-{{ grafana_version }}.tar.gz"
+    dest: "{{ pulsar_dir }}/packages"
+
+- name: Remove grafana package symlink
+  file:
+   path: "{{ grafana_dir }}"
+   state: absent
+
+- name: Create grafana package symlink
+  file:
+    src: "{{ pulsar_dir }}/packages/grafana-{{ grafana_version }}"
+    dest: "{{ grafana_dir }}"
+    state: link
+
+- name: Create grafana configuration file
+  template:
+    src: grafana.ini.j2
+    dest: "{{ grafana_dir }}/conf/grafana.ini"
+    mode: "0644"
+
+- name: Create grafana provisioning dashboard configuration file
+  template:
+    src: "provisioning_dashboard.yml.j2"
+    dest: "{{ grafana_dir }}/conf/provisioning/dashboards/pulsar.yaml"
+    mode: "0644"
+
+- name: Create grafana provisioning datasources configuration file
+  template:
+    src: "provisioning_datasource.yml.j2"
+    dest: "{{ grafana_dir }}/conf/provisioning/datasources/pulsar.yaml"
+    mode: "0644"
+
+- name: Copy grafana provisioned dashboards
+  copy:
+    src: "{{ playbook_dir }}/dashboards/{{ item }}.json"
+    dest: "{{ grafana_dashboards_dir }}/{{ item }}.json"
+    mode: "0644"
+  with_items:
+    - bookkeeper
+    - jvm
+    - messaging
+    - node
+    - overview
+    - proxy
+    - zookeeper
+    - node_exporter
+
+- include_tasks: "{{ deployment_method }}_deployment.yml"
+

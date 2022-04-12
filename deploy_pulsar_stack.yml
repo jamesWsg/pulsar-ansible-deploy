@@ -1,0 +1,21 @@
+# this playbook is intend for one pass execution
+
+---
+
+- import_playbook: deploy_host_preconfig.yml
+- import_playbook: deploy_zookeeper.yml
+- import_playbook: playbooks/start_zookeeper.yml
+- import_playbook: deploy_cluster_initialize.yml
+
+- import_playbook: deploy_bookkeeper.yml
+- import_playbook: playbooks/start_bookkeeper.yml
+- import_playbook: deploy_broker.yml
+- import_playbook: playbooks/start_broker.yml
+
+- import_playbook: deploy_prometheus.yml
+- import_playbook: playbooks/start_prometheus.yml
+
+- import_playbook: deploy_node_exporter.yml
+- import_playbook: playbooks/start_node_exporter.yml
+- import_playbook: deploy_grafana.yml
+- import_playbook: playbooks/start_grafana.yml

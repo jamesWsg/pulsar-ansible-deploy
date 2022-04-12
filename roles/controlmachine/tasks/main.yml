@@ -1,0 +1,69 @@
+#
+# Copyright (c) 2018 Sijie. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+---
+
+## Prepare directories & configuration files
+
+- name: Create resources directories
+  file: path="{{ item }}" state=directory mode=0755
+  with_items:
+  - "{{ download_dir }}"
+  - "{{ resources_dir }}"
+  - "{{ deploy_conf_dir }}"
+
+- name: Prepare common_packages.yml
+  template:
+    src=common_packages.yml.j2
+    dest={{ deploy_conf_dir }}/common_packages.yml
+
+- name: Prepare {{ deployment_method }}_packages.yml
+  template:
+    src={{ deployment_method }}_packages.yml.j2
+    dest={{ deploy_conf_dir }}/{{ deployment_method }}_packages.yml
+
+- include_vars:
+    file={{ deploy_conf_dir }}/common_packages.yml
+
+- include_vars:
+    file={{ deploy_conf_dir }}/{{ deployment_method }}_packages.yml
+
+## Download Packages
+
+- name: Download Pulsar Binary
+  get_url:
+    url: "{{ item.url }}"
+    dest: "{{ download_dir }}/{{ item.name }}-{{ item.version }}.tar.gz"
+    force: yes
+  register: get_url_result
+  until: "'OK' in get_url_result.msg or 'file already exists' in get_url_result.msg"
+  retries: 5
+  delay: "{{ retry_stagger | random + 3 }}"
+  with_items: "{{ pulsar_packages }}"
+
+- name: Download jdk
+  get_url:
+    url: "{{ item.url }}"
+    dest: "{{ download_dir}}/jdk-{{ jdk_version }}_linux-x64_bin.rpm"
+    force: yes
+  register: get_url_result
+  until: "'OK' in get_url_result.msg or 'file already exists' in get_url_result.msg"
+  retries: 5
+  delay: "{{ retry_stagger | random + 3 }}"
+  with_items: "{{ jdk_packages }}"
+
+
+- include_tasks: "{{ deployment_method }}_deployment.yml"

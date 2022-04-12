@@ -1,0 +1,14 @@
+---
+
+- hosts: all
+  become: yes
+  gather_facts: false
+  tasks:
+
+
+
+    - name: Create fs "{{ fstype }}"  in partition "{{ device }}"
+      filesystem:
+        dev: "{{ device }}"
+        fstype: "{{ fstype }}"
+
