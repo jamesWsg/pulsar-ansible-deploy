@@ -1,47 +1,77 @@
+# bookies ledger device may have many,should manual modify according you environment
 ---
 
 - hosts: bookies
   become: yes
   gather_facts: false
- 
-  vars: 
-    - pulsar_dir: /opt/pulsar
-    - pulsar_zk_data_dir: /opt/pulsar/data/zookeeper
-    - pulsar_zk_txlog_dir: /opt/pulsar/data/zookeeper/txlog
-    - pulsar_bookie_journal_dir: "{{ pulsar_dir }}/data/bookkeeper/journal-0"
-    - pulsar_bookie_ledgers_dir: "{{ pulsar_dir }}/data/bookkeeper/ledgers-0"
-    - pulsar_bookie_journal_dir1: "{{ pulsar_dir }}/data/bookkeeper/journal-1"
-    - pulsar_bookie_ledgers_dir1: "{{ pulsar_dir }}/data/bookkeeper/ledgers-1" 
-    - fstype: ext4
-    - bookie_journal_device: /dev/disk/by-partlabel/journal-0
-    - bookie_ledgers_device: /dev/disk/by-partlabel/ledgers-0
-    - bookie_journal_device1: /dev/disk/by-partlabel/journal-1
-    - bookie_ledgers_device1: /dev/disk/by-partlabel/ledgers-1    
+
+  vars:
+    fstype: ext4
+    pulsar_dir: /opt/pulsar
+    pulsar_zk_data_dir: /opt/pulsar/data/zookeeper
+    pulsar_zk_txlog_dir: /opt/pulsar/data/zookeeper/txlog
+    bookieJournalDirs:
+      journal0:
+        journal_device: /dev/disk/by-partlabel/journal-0
+        journal_dir: "{{ pulsar_dir }}/data/bookkeeper/journal-0"
+      journal1:
+        journal_device: /dev/disk/by-partlabel/journal-1
+        journal_dir: "{{ pulsar_dir }}/data/bookkeeper/journal-1"
+      journal2:
+        journal_device: /dev/disk/by-partlabel/journal-2
+        journal_dir: "{{ pulsar_dir }}/data/bookkeeper/journal-2"
+      journal3:
+        journal_device: /dev/disk/by-partlabel/journal-3
+        journal_dir: "{{ pulsar_dir }}/data/bookkeeper/journal-3"
+      journal4:
+        journal_device: /dev/disk/by-partlabel/journal-4
+        journal_dir: "{{ pulsar_dir }}/data/bookkeeper/journal-4"
+      journal5:
+        journal_device: /dev/disk/by-partlabel/journal-5
+        journal_dir: "{{ pulsar_dir }}/data/bookkeeper/journal-5"      
+
+    bookieLedgerlDirs:
+      ledgers0:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-0
+        ledgers_dir: "{{ pulsar_dir }}/data/bookkeeper/ledgers-0"
+      ledgers1:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-1
+        ledgers_dir: "{{ pulsar_dir }}/data/bookkeeper/ledgers-1"
+      ledgers2:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-2
+        ledgers_dir: "{{ pulsar_dir }}/data/bookkeeper/ledgers-2"
+      ledgers3:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-3
+        ledgers_dir: "{{ pulsar_dir }}/data/bookkeeper/ledgers-3"
+      ledgers4:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-4
+        ledgers_dir: "{{ pulsar_dir }}/data/bookkeeper/ledgers-4"
+      ledgers5:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-5
+        ledgers_dir: "{{ pulsar_dir }}/data/bookkeeper/ledgers-5"      
   tasks:
+    - name: mount bookie journal dirs
+      debug: msg="{{ item.key }} is mounting {{ item.value.journal_device }} to dir {{ item.value.journal_dir }}"
+      with_dict: "{{ bookieJournalDirs }}"
+
+    - name: mount bookie ledgers dirs
+      debug: msg="{{ item.key }} is mounting {{ item.value.ledgers_device }} to dir {{ item.value.ledgers_dir }}"
+      with_dict: "{{ bookieLedgerlDirs }}"
 
     - name: mount bookie journal device
       mount:
-        path: "{{ pulsar_bookie_journal_dir }}"
-        src: "{{ bookie_journal_device }}"
+        path: "{{ item.value.journal_dir }}"
+        src: "{{ item.value.journal_device }}"
         fstype: "{{ fstype }}"
         state: mounted
+        #state: present
+      with_dict: "{{ bookieJournalDirs }}"
 
-    - name: mount mount bookie ledgers device
+    - name: mount bookie ledger device
       mount:
-        path: "{{ pulsar_bookie_ledgers_dir }}"
-        src: "{{ bookie_ledgers_device }}"
+        path: "{{ item.value.ledgers_dir }}"
+        src: "{{ item.value.ledgers_device }}"
         fstype: "{{ fstype }}"
+        #state: mounted
         state: mounted
-    - name: mount bookie journal device1
-      mount:
-        path: "{{ pulsar_bookie_journal_dir1 }}"
-        src: "{{ bookie_journal_device1 }}"
-        fstype: "{{ fstype }}"
-        state: mounted
-
-    - name: mount mount bookie ledgers device1
-      mount:
-        path: "{{ pulsar_bookie_ledgers_dir1 }}"
-        src: "{{ bookie_ledgers_device1 }}"
-        fstype: "{{ fstype }}"
-        state: mounted
+      with_dict: "{{ bookieLedgerlDirs }}"

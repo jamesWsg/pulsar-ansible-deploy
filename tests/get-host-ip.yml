@@ -1,0 +1,15 @@
+---
+- name: filter test
+  #hosts: localhost
+  hosts: brokers
+  vars:
+
+  tasks:
+
+  # Map Filter only selective attributes from list of objects [{},{}]
+  - name: debug1
+    debug:
+      msg="{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address']   }}"
+  - name: debug 2 Select and Extract only the cities
+    debug:
+      msg="{{ hostvars[inventory_hostname] }}"

@@ -17,11 +17,13 @@
         path: "{{ pulsar_zk_data_dir }}"
         src: "{{ zk_data_device }}"
         fstype: "{{ fstype }}"
-        state: mounted
+        #state: mounted
+        state: present
     - name: mount zk txlog device
       mount:
         path: "{{ pulsar_zk_txlog_dir }}"
         src: "{{ zk_txlog_device }}"
         fstype: "{{ fstype }}"
         state: mounted
+        #state: mounted
 

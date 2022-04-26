@@ -18,6 +18,9 @@
 
 - name: Deploying Brokers
   hosts: brokers
+
+  # we need get remote host ip to advertisedAdress in broker.conf
+  gather_facts: True
   tags:
     - broker
   roles:

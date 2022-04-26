@@ -225,7 +225,7 @@ two inventory file should modify
    ...
    ```
    
-
+   
    
 
 
@@ -264,8 +264,12 @@ drwxr-xr-x. 2 pulsar pulsar  6 Mar 15 13:31 pulsar
    ```
    ansible zookeeper -m shell -a "sudo sgdisk /dev/sdc -n 1:0:+50G -n 2:0:+50G"
    
+   sudo sgdisk /dev/sdc -n 1:2048  ## 单个分区使用全部磁盘空间
    # then label the partion
    ansible zookeeper -m shell -a "sudo sgdisk /dev/sdc -c 1:"zk-data" -c 2:"zk-txlog""
+   
+   
+   sudo sgdisk /dev/sdc -c 1:"zk-data"
    
    ```
 
@@ -394,6 +398,8 @@ after deploy bookie, it will create the following directory for bookie journal a
 
 ## step12: mount bookeeper device
 
+> The default conf should change according your practical environment
+
 1. Mkfs to bookeeper journal and ledger device
 
    
@@ -412,24 +418,7 @@ after deploy bookie, it will create the following directory for bookie journal a
    ```
    
 
-If have two or more devices, should repeat the above steps.(need change the host.ini.production to refer to different device)
 
-```
-
- 39 ## bookie journal ledgers
- 40 bookie_journal_device = /dev/disk/by-partlabel/journal-0
- 41 bookie_ledgers_device = /dev/disk/by-partlabel/ledgers-0
- 42 pulsar_bookie_journal_dir = {{ pulsar_dir }}/data/bookkeeper/journal-0
- 43 pulsar_bookie_ledgers_dir = {{ pulsar_dir }}/data/bookkeeper/ledgers-0
- 
- ########## if have more device should change above as following
- 
- 39 ## bookie journal ledgers
- 40 bookie_journal_device = /dev/disk/by-partlabel/journal-1
- 41 bookie_ledgers_device = /dev/disk/by-partlabel/ledgers-1
- 42 pulsar_bookie_journal_dir = {{ pulsar_dir }}/data/bookkeeper/journal-1
- 43 pulsar_bookie_ledgers_dir = {{ pulsar_dir }}/data/bookkeeper/ledgers-1
-```
 
 
 
@@ -452,53 +441,7 @@ If have two or more devices, should repeat the above steps.(need change the host
 
    
 
-## Step13:  distribute bookeeper.conf to all bookie node (this step can be refined later)
-
-Because bookie journal and ledger have two directories ,the bookeeper.conf did’t include both direcory， i am not figure it out，so use this step to workaround.
-
-in `tools/configer/` directory, get bookeeeper config
-
-```
-ansible-playbook -i ../../inventory.ini bookkeeper-config-get.yml
-```
-
-the above command will create tmp dir in current dir  as following:
-
-```
-pulsar@ansible-control:~/pulsar-ansible-deploy/tools/configer$ tree tmp/
-tmp/
-├── bookkeeper.conf-10.2.0.12
-├── bookkeeper.conf-10.2.0.13
-└── bookkeeper.conf-10.2.0.14
-
-```
-
-Then modify one of the bookeeper.conf.*  ,then rename to config directory
-
-```
-pulsar@ansible-control:~/pulsar-ansible-deploy/tools/configer$ ll
-total 64
-drwxrwxr-x  3 pulsar pulsar  4096 Mar 17 13:20 ./
-drwxr-xr-x 17 pulsar pulsar  4096 Mar 17 13:12 ../
--rw-rw-r--  1 pulsar pulsar   546 Mar 17 13:17 bookeeper-config-distribute.yml
--rw-rw-r--  1 pulsar pulsar   384 Mar 17 13:08 bookeeper-config-get.yml
--rw-rw-r--  1 pulsar pulsar 30352 Mar 17 13:11 bookkeeper.conf
-drwxrwxr-x  2 pulsar pulsar  4096 Mar 17 13:12 tmp/
-```
-
-Then distribute bookeeper.conf to all bookeeper nodes
-
-```
-ansible-playbook -i ../../inventory.ini bookkeeper-config-distribute.yml
-```
-
-
-
-
-
-
-
-## Step14: start  bookeeper
+## Step13: start  bookeeper
 
 Back to main directory
 

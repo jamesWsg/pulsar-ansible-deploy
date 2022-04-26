@@ -1,24 +1,53 @@
+# bookies journal and ledger device may have many,should manual modify according you environment
 ---
 
 - hosts: bookies
   become: yes
   gather_facts: false
-  vars: 
-    - fstype: ext4
-    - bookie_journal_device: /dev/disk/by-partlabel/journal-0
-    - bookie_ledgers_device: /dev/disk/by-partlabel/ledgers-0
-    - bookie_journal_device1: /dev/disk/by-partlabel/journal-1
-    - bookie_ledgers_device1: /dev/disk/by-partlabel/ledgers-1
+
+  vars:
+    fstype: ext4
+    pulsar_dir: /opt/pulsar
+    bookieJournalDirs:
+      journal0:
+        journal_device: /dev/disk/by-partlabel/journal-0
+      journal1:
+        journal_device: /dev/disk/by-partlabel/journal-1
+      journal2:
+        journal_device: /dev/disk/by-partlabel/journal-2
+      journal3:
+        journal_device: /dev/disk/by-partlabel/journal-3
+      journal4:
+        journal_device: /dev/disk/by-partlabel/journal-4
+      journal5:
+        journal_device: /dev/disk/by-partlabel/journal-5
+
+    bookieLedgerlDirs:
+      ledgers0:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-0
+      ledgers1:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-1
+      ledgers2:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-2
+      ledgers3:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-3
+      ledgers4:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-4
+      ledgers5:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-5
   tasks:
+
+
+
     - debug: var=fstype
-    - name: Create fs "{{ fstype }}" in "{{ item }}"
+    - name: Create bookie journal device fs "{{ fstype }}" in "{{ item.key }}"
       filesystem:
-        dev: "{{ item }}"
+        dev: "{{ item.value.journal_device  }}"
         fstype: "{{ fstype }}"
-      with_items:
-      - "{{ bookie_journal_device }}"
-      - "{{ bookie_ledgers_device }}"
-      - "{{ bookie_journal_device1 }}"
-      - "{{ bookie_ledgers_device1 }}"
+      with_dict: "{{ bookieJournalDirs }}"
 
-
+    - name: Create bookie ledgers device fs "{{ fstype }}" in "{{ item.key }}"
+      filesystem:
+        dev: "{{ item.value.ledgers_device  }}"
+        fstype: "{{ fstype }}"
+      with_dict: "{{ bookieLedgerlDirs }}"

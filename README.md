@@ -1,10 +1,10 @@
 
 
-## overview
+## Overview
 
 
 
-this repo is based on https://github.com/streamnative/apache-pulsar-ansible,  for deploy larger pulsar cluster in production environment (like china union project), mainly include the following function:
+This repo is based on https://github.com/streamnative/apache-pulsar-ansible,  for deploy larger pulsar cluster in production environment (like china union project), mainly include the following function:
 
 - Deploy pulsar cluster
 - Pulsar maitain ( located in `tools/configer` directory,  like config collect and distribution,)
@@ -14,7 +14,7 @@ this repo is based on https://github.com/streamnative/apache-pulsar-ansible,  fo
 
 ## Environment
 
-Suppose we have four vm, one is control-vm, the other three node (called pulsar nodes in following ) is to deploy pulsar cluster, env as following :
+Suppose we have four vm, one is control-vm, the other three node (called pulsar nodes in following ) is to deploy pulsar cluster, env as following ():
 
 | Hostname        | IP       | OS /defalt user account      | Planed-roles                     |
 | --------------- | -------- | ---------------------------- | -------------------------------- |
@@ -29,146 +29,110 @@ Suppose we have four vm, one is control-vm, the other three node (called pulsar 
 
 
 
-## control machine prepare
+## Download ansible-docker image 
 
-Before you start, make sure you have:
-
-(TBD)
-
-### Step 1: Install system dependencies on the control machine.
-
-Log in to the `control machine` using the `root` user account, and run the
-corresponding command according to your operating system.
-
-#### CentOS
-
-Run the following command:
-
-```bash
-# yum -y install epel-release git curl sshpass
-# yum -y install python-pip
-```
-
-#### ubuntu
+Download from aliyun OSS 
 
 ```
-# apt install git curl sshpass 
+in bucket streamnative-edm-images ,you can find pulsar-ansible-deploy/ansible-ubuntu20v1.img
+
+https://streamnative-edm-images.oss-cn-beijing.aliyuncs.com/pulsar-ansible-deploy/ansible-ubuntu20v1.img?Expires=1650894338&OSSAccessKeyId=TMP.3KfFnKDnUEi4CYu3BAjtiVH8YknYYf1Sf2yUsmyeA7uphgukW8yh4e2HZ2ejJdgwg9gwUo6NJRAF99GGDqbwPgNyVwZBJZ&Signature=DAnMV6VagqFsM9kTzEiogj%2BCCxM%3D
 ```
 
-
-
-### Step 2: Create the `pulsar` user on the control machine
-
-Make sure you have logged in to the control machine using a user account
-that has super permissions. Then run the following commands:
-
-1. Create `pulsar` user.
-
-  ```bash
-useradd -m -d /home/pulsar pulsar
-  ```
-
-2. Set a password for `pulsar` user account.
-
-  ```bash
-passwd pulsar
-  ```
-
-3. Add `pulsar` to sudoer list.
-
-  The wheel group is a special user group that allows all members in the group
-  to run all commands. Therefore, we need to add the new user to this group
-  so it can run commands as superuser.
-
-  ```bash
-usermod -aG wheel pulsar
-  ```
-
-  Once the user is added to `wheel` group, use `visudo` to open and edit
-  `/etc/sudoers` file. Make sure that the line that starts with `%wheel` is
-  not commented. It should look exactly like this:
-
-  ```bash
-## Allows people in group wheel to run all commands
-%wheel  ALL=(ALL)       ALL
-  ```
-
-  Then configure sudo without password for the `pulsar account` by adding
-  `pulsar ALL=(ALL) NOPASSWD: ALL` to the end of the `/etc/sudoers` file.
-
-  ```bash
-pulsar ALL=(ALL) NOPASSWD: ALL
-  ```
-
-4. Generate the SSH key.
-
-  Execute the `su` command to switch the user to `pulsar`.
-
-  ```bash
-su - pulsar
-  ```
-
-  Create the SSH key for the `pulsar` user account and hit the Enter key
-  when `Enter passphrase` is promoted. After successful execution, the ssh
-  private key file is `/home/pulsar/.ssh/id_rsa`, and the SSH public key
-  file is `/home/pulsar/.ssh/id_rsa.pub`.
-
-  ```bash
-ssh-keygen -t rsa
-  ```
-
-5. Once the SSH key is generated for user `pulsar`, make sure its key is whitelisted at root user.
-
-   At the root user, do following:
-
-   ```bash
-   sudo cat /home/pulsar/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
-   ```
+> the above S3 url may expire ,you should check, or you can build your docker imge  use repo's Dockfile
 
 
 
-### Step 3: Checkout `pulsar-ansible` to the control machine
+## Prepare docker environment 
 
-1. Login to the control machine using the `pulsar` user account and
-   enter the `/home/pulsar` directory.
+in control-machine
 
-2. Git clone the `pulsar-ansible` repo.
+### step1: load ansible docker image
 
-  ```bash
+```
+sudo docker load -i ansible-ubuntu20v1.img
+```
+
+### Step2: make host path for docker use, and get ansible repo
+
+```
+mkdir -p /home/wsg/deploy
+cd /home/wsg/deploy
+mkdir .ssh              ##this is used for generate ssh-key in docker
+
 git clone git@github.com:streamnative/pulsar-ansible-deploy.git
-  ```
+```
 
-  > **NOTE**: it is important to clone `pulsar-ansible` to the `/home/pulsar`
-  > directory using `pulsar` user account. Otherwise, you will encounter
-  > privilege issue.
+### step3: run ansible docker
 
-### Step 4: Install Ansible and its dependencies on the control machine
+```
+wsg@ansible-control:~/deploy$ sudo docker run --rm -v /home/wsg/deploy/pulsar-ansible-deploy:/home/pulsar/deploy -v /home/wsg/deploy/.ssh:/home/pulsar/.ssh -it ansible-ubuntu20v1 /bin/bash
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
 
-> Make sure you have logged in the control machine using `pulsar` user account.
+pulsar@3036ec8b2631:/$ pwd
+/
+```
 
-1. Install Ansible and its dependencies.
+Now you have entered docker ,default user is pulsar in docker container, check the deploy directory（mount from host path） in /home/pulsar
 
-  ```bash
-$ cd /home/pulsar/pulsar-ansible-deploy
-$ sudo pip install -r ./requirements.txt
-  ```
+```
+pulsar@3036ec8b2631:~$ cd /home/pulsar/
+pulsar@3036ec8b2631:~$ ls deploy/
+ls: cannot open directory 'deploy/': Permission denied
+pulsar@3036ec8b2631:~$
 
-2. Make sure Ansible is installed correctly.
+## because the deploy is mount from hostPath, docker default user is pulsar, not same as host,shoulde change owner like following 
 
-  ```bash
-$ ansible --version
-ansible 2.6.7
-  ```
+pulsar@3036ec8b2631:~$ pwd
+/home/pulsar
+pulsar@3036ec8b2631:~$ sudo chown -R pulsar:pulsar *
+pulsar@3036ec8b2631:~$ ls deploy/
+Dockerfile               ansible.cfg     deploy_bookkeeper.yml          deploy_host_preconfig.yml  
+pulsar@3036ec8b2631:~$
 
-### Step 5: Create `pulsar` user on all pulsar nodes to run pulsar service
+```
 
-> Make sure you have logged in the control machine using `pulsar` user account.
+Now you can access the deploy, everything is ok now 
 
-1. Add the addresses of your target machines to the `[servers]` section
-   of the `hosts.ini` file.
+### step4: generate ssh-key
 
-  ```bash
-$ cd /home/pulsar/pulsar-ansible-deploy
+the key is used for  ansible docker ssh to other host without ssh-password
+
+```
+pulsar@3036ec8b2631:~$ pwd
+/home/pulsar
+pulsar@3036ec8b2631:~$ sudo chown -R pulsar:pulsar .ssh/
+
+pulsar@3036ec8b2631:~$ ssh-keygen
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/pulsar/.ssh/id_rsa):
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /home/pulsar/.ssh/id_rsa
+Your public key has been saved in /home/pulsar/.ssh/id_rsa.pub
+
+## after finish,you can see the key in .ssh/
+pulsar@3036ec8b2631:~$ ls -l .ssh/
+total 8
+-rw------- 1 pulsar pulsar 2610 Apr 25 04:06 id_rsa
+-rw-r--r-- 1 pulsar pulsar  573 Apr 25 04:06 id_rsa.pub
+pulsar@3036ec8b2631:~$
+```
+
+
+
+## inventory and global variable prepare
+
+After ansible docker is running, enter /home/pulsar/deploy directory in docker
+
+There is some config file related the custom's environment need to modify as following
+
+### host.ini
+
+This inventory file is only used for create pulsar user in other pulsar node  
+
+```
 $ cat hosts.ini
 [servers]
 10.2.0.4
@@ -181,51 +145,7 @@ username = pulsar
 ansible_ssh_pass='abc12345'
 ansible_ssh_user='azureuser'
 ~
-  ```
-
-2. Run `create_service_account.yml` playbook.
-
-  ```bash
-ansible-playbook -i hosts.ini playbooks/create_service_account.yml
-  ```
-
-> Attention: in azure cloud, the default sshd config not allowed to login with user/password, you can refer https://phoenixnap.com/kb/ssh-permission-denied-publickey to solve this problem. After create pulsar user, you can restore the sshd_config. Following steps, we will use pulsar user (with ssh-key method)
-
-  This playbook creates `pulsar` service account on the target machines,
-  configures the sudo rules and the SSH mutual trust from control machine
-  to the target machines.
-
-3. Check ssh to pulsar nodes without password
-
-   ```
-   pulsar@ubuntu20:~/apache-pulsar-ansible$ ssh 10.2.0.4
-   Last login: Thu Mar 17 04:29:31 2022 from ubuntu20.internal.cloudapp.net
-   [pulsar@redhat1 ~]$
-   ```
-
-4. then modify the host.ini, comment out ssh password as following:
-
-   Otherwise ansible prefer use ssh password to login remote servers, if you configured the sshd_config in step 2 and restored the sshd_config will have problem.
-
-   ```
-   # cat hosts.ini
-   [servers]
-   10.2.0.4
-   10.2.0.6
-   10.2.0.7
-   10.2.0.8
-   
-   [all:vars]
-   username = pulsar
-   #ansible_ssh_pass='abc12345'
-   #ansible_ssh_user='azureuser'
-   ```
-
-   
-
-
-
-## inventory and global variable prepare
+```
 
 
 
@@ -295,32 +215,6 @@ grafana_admin_password = "admin"
 
  
 
-After modifie the inventory.ini file ,then run
-
-```
-ansible-playbook -i inventory.ini cm_prepare.yml
-```
-
-The command will create deploy directory ,and download the package defined in inventory.ini , you can check the downloaded file as following.
-
-```
-pulsar@ubuntu20:~/apache-pulsar-ansible$ tree deploy -L 2
-deploy
-├── conf
-│   ├── binary_packages.yml
-│   └── common_packages.yml
-├── download
-│   ├── alertmanager-0.23.0.tar.gz
-│   ├── blackbox_exporter-0.12.0.tar.gz
-│   ├── grafana-5.3.2.tar.gz
-│   ├── grafana-8.1.3.tar.gz
-│   ├── jdk-11.0.1_linux-x64_bin.rpm
-│   ├── node_exporter-1.3.1.linux-amd64
-│   ├── node_exporter-1.3.1.tar.gz
-│   ├── prometheus-2.33.4.tar.gz
-│   ├── pulsar-2.8.1.tar.gz
-```
-
 ### global variable
 
 Include control-machine variables , pulsar variables 
@@ -359,9 +253,54 @@ num_journal_dirs: 2
 
 
 
+### download package
 
+After modified the inventory.ini file ,then run
+
+```
+ansible-playbook -i inventory.ini cm_prepare.yml
+```
+
+The command will create deploy directory ,and download the package defined in inventory.ini , you can check the downloaded file as following.
+
+```
+pulsar@ubuntu20:~/apache-pulsar-ansible$ tree deploy -L 2
+deploy
+├── conf
+│   ├── binary_packages.yml
+│   └── common_packages.yml
+├── download
+│   ├── alertmanager-0.23.0.tar.gz
+│   ├── blackbox_exporter-0.12.0.tar.gz
+│   ├── grafana-5.3.2.tar.gz
+│   ├── grafana-8.1.3.tar.gz
+│   ├── jdk-11.0.1_linux-x64_bin.rpm
+│   ├── node_exporter-1.3.1.linux-amd64
+│   ├── node_exporter-1.3.1.tar.gz
+│   ├── prometheus-2.33.4.tar.gz
+│   ├── pulsar-2.8.1.tar.gz
+```
 
 Now you have all things prepared. 
+
+> Note: if custom's environment can not access internet, you should do this in an satisfied environment, after download finish, you can tar the deploy directory, then used in custom's environment.
+
+
+
+## create pulsar user in other pulsar node
+
+```
+ansible-playbook -i hosts.ini playbooks/create_service_account.yml
+```
+
+after finish you can check ssh to other host is ok
+
+```
+pulsar@3036ec8b2631:~/deploy$ ssh 10.2.0.7
+Last login: Mon Apr 25 04:35:51 2022 from ansible-control.internal.cloudapp.net
+[pulsar@test-withDokerAnsible ~]$
+
+```
 
 
 
@@ -373,7 +312,9 @@ if you just deploy pulsar in test environment, you just need run
 ansible-playbook -i inventory.ini deploy_pulsar_stack.yml
 ````
 
-> Attentions: if you deploy zk, broker on same host, check port confict
+This will put zookeeper, bookie data all into /opt/pulsar/ (which physically one disk, this is not suited in production environment). You can see production deploy for more information
+
+> Attentions: if you deploy zk, broker on same host, check port confict,which defined in group_vars
 
 
 
@@ -392,6 +333,53 @@ you can see the complete example as following:
 [production deploy example](production-deploy-example.md)
 
 
+
+## config management
+
+after deploy finish ,we may need to change configuration, you can use `tools/configer/` directory
+
+suppose we need to change bookkeeper config , you can do as following 
+
+1. get bookeeeper config
+
+   ```
+   ansible-playbook -i ../../inventory.ini bookkeeper-config-get.yml
+   ```
+
+   the above command will create tmp dir in current dir  as following:
+
+   ```
+   pulsar@ansible-control:~/pulsar-ansible-deploy/tools/configer$ tree tmp/
+   tmp/
+   ├── bookkeeper.conf-10.2.0.12
+   ├── bookkeeper.conf-10.2.0.13
+   └── bookkeeper.conf-10.2.0.14
+   
+   ```
+
+2.  modify one of the bookeeper.conf.*  ,then mvto configer  directory as following
+
+   ```
+   pulsar@ansible-control:~/pulsar-ansible-deploy/tools/configer$ ll
+   total 64
+   drwxrwxr-x  3 pulsar pulsar  4096 Mar 17 13:20 ./
+   drwxr-xr-x 17 pulsar pulsar  4096 Mar 17 13:12 ../
+   -rw-rw-r--  1 pulsar pulsar   546 Mar 17 13:17 bookeeper-config-distribute.yml
+   -rw-rw-r--  1 pulsar pulsar   384 Mar 17 13:08 bookeeper-config-get.yml
+   -rw-rw-r--  1 pulsar pulsar 30352 Mar 17 13:11 bookkeeper.conf
+   drwxrwxr-x  2 pulsar pulsar  4096 Mar 17 13:12 tmp/
+   ```
+
+3. Then distribute bookeeper.conf to all bookeeper nodes
+
+   ```
+   ansible-playbook -i ../../inventory.ini bookkeeper-config-distribute.yml
+   ```
+
+
+
+
+If your configuration is different  on each node, should consider use template, you need subtract diff as variable in template
 
 ## more
 

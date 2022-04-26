@@ -1,0 +1,28 @@
+---
+
+- hosts: localhost
+  become: yes
+  gather_facts: false
+
+  vars:
+    fstype: ext4
+    pulsar_dir: /opt/pulsar
+    pulsar_zk_data_dir: /opt/pulsar/data/zookeeper
+    pulsar_zk_txlog_dir: /opt/pulsar/data/zookeeper/txlog
+
+    num_ledger_dirs: 4
+    bookie_ledgers_dir: "{{ pulsar_dir }}/data/bookkeeper/ledgers"
+    ledger_dir_name_template: "{{ bookie_ledgers_dir }}-{{ item }}"
+
+  tasks:
+
+    - name: Generate `bookie_ledger_directories` list
+      set_fact:
+        bookie_ledger_directories: "{{ (bookie_ledger_directories | default('')) + ledger_dir_name_template + ',' }}"
+      with_sequence: start=0 count={{ num_ledger_dirs | int }}
+
+    - name: mount bookie ledgers dirs
+      debug: msg="{{ bookie_ledger_directories }}"
+
+    - name: mount bookie ledgers dirs
+      debug: msg="{{ bookie_ledger_directories[:-1] }}"

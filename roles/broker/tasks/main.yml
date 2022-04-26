@@ -15,6 +15,9 @@
 #
 
 ---
+- name: Generate host_ip used for advertiseAdress in broker.conf.j2
+  set_fact:
+    host_ip: "{{ hostvars[inventory_hostname]['ansible_default_ipv4']['address'] }}"
 
 - name: Copy broker configuration files
   template:

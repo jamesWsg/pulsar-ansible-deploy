@@ -30,21 +30,27 @@
     mode: 0755
   with_sequence: start=0 count={{ num_journal_dirs | int }}
 
+- name: Generate `bookie_ledger_directories` str
+  set_fact:
+    bookie_ledger_directories_str: "{{ (bookie_ledger_directories_str | default('')) + ledger_dir_name_template + ',' }}"
+  with_sequence: start=0 count={{ num_ledger_dirs | int }}
+
+# bookie_ledger_directories_str tail have comma,should remove,sytax follow python string
 - name: Generate `bookie_ledger_directories` list
   set_fact:
-    bookie_ledger_directories: "{{ (bookie_ledger_directories | default('')) + ledger_dir_name_template }}"
-  with_sequence: start=0 count={{ num_ledger_dirs | int }}
-  when: bookie_ledger_directories is not defined
+    bookie_ledger_directories: "{{ bookie_ledger_directories_str[:-1] }}"
 
-- debug: msg={{ bookie_ledger_directories }}
+
+- name: Generate `bookie_journal_directories` str
+  set_fact:
+    bookie_journal_directories_str: "{{ (bookie_journal_directories_str | default('')) + journal_dir_name_template + ','}}"
+  with_sequence: start=0 count={{ num_journal_dirs | int }}
 
 - name: Generate `bookie_journal_directories` list
   set_fact:
-    bookie_journal_directories: "{{ (bookie_journal_directories | default('')) + journal_dir_name_template }}"
-  with_sequence: start=0 count={{ num_journal_dirs | int }}
-  when: bookie_journal_directories is not defined
+    bookie_journal_directories: "{{ bookie_journal_directories_str[:-1] }}"
 
-- debug: msg={{ bookie_journal_directories }}
+
 
 - name: Set `bookie_index_directories` variable
   set_fact: bookie_index_directories={{ bookie_ledger_directories }}

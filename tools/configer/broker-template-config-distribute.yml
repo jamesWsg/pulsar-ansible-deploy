@@ -1,0 +1,29 @@
+# use j2 template, you should manually create the template in current dir
+
+---
+- hosts: brokers
+  vars:
+    local_conf_template_name: broker.conf.j2
+    target_conf_dir: /opt/pulsar/current/conf
+    target_conf_name: broker.conf
+    timestamp: "{{lookup('pipe', 'date +%Y%m%d%H%M')}}"
+
+    test_ip: 8.8.8.8
+
+  tasks:
+
+    - name: Check if target_conf_name exists
+      stat:
+        path: "{{ target_conf_dir }}/{{ target_conf_name }}"
+      register: target_conf_details
+    - debug: var=target_conf_details
+
+    - name: back up "{{ target_conf_name }}" in target host
+      command: mv "{{ target_conf_dir }}/{{ target_conf_name }}" "{{ target_conf_dir }}/{{ target_conf_name }}.{{ timestamp }}"
+      when: target_conf_details.stat.exists
+
+
+    - name: distribule conf with_template files
+      template:
+        src: "{{ playbook_dir }}/{{ local_conf_template_name }}"
+        dest: "{{ target_conf_dir }}/{{ target_conf_name }}"

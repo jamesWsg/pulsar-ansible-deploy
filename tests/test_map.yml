@@ -1,0 +1,54 @@
+---
+- name: filter test
+  hosts: localhost
+  vars:
+
+    names: [ {
+        "first": "Paul",
+        "last": "Thompson",
+        "mobile": "+1-234-31245543",
+        "ctc": "100000",
+        "address": {
+          "city": "LasVegas",
+          "country": "USA"
+        }
+      },
+      {
+        "first": "Rod",
+        "last": "Johnson",
+        "mobile": "+1-584-31551209",
+        "ctc": "300000",
+        "address": {
+          "city": "Boston",
+          "country": "USA"
+        }
+      },
+      {
+        "first": "Sarav",
+        "last": "AK",
+        "mobile": "+919876543210",
+        "ctc": "200000",
+        "address": {
+          "city": "Chennai",
+          "country": "India"
+        }
+      }]
+  tasks:
+
+  # Map Filter only selective attributes from list of objects [{},{}]
+  - name: Select and Extract only the cities
+    debug:
+      msg="{{ names | map(attribute='address') | map(attribute='city')}}"
+  # using attirubtes with list of objects [{},{}] - Selecting only mobile numbers
+  - name: Select and Extract only mobile numbers
+    debug:
+      msg: "{{ names | map(attribute='mobile') }}"
+  # Select Attributes Joined with Comma in Singleline ( By Default it returns a List)
+  - debug: msg={{ names | map(attribute='first') | join(',') }}
+  - debug: msg={{ names | map(attribute='last') | join(',') }}
+  # Convert the lastname to uppercase
+  - debug: msg={{ names | map(attribute='last') | map('upper') }}
+  # Convert the CTC attriute to float value
+  - debug: msg={{ names | map(attribute='ctc') | map('float') }}
+  # Appending USD to each CTC value and print
+  - debug: msg={{ names | map(attribute='ctc') | product(['USD']) | map('join',' ')}}

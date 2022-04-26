@@ -7,11 +7,19 @@
 
   tasks:
 
+# First should check if target_conf_name is exist,otherwise backup will fail
+    - name: Check if target_conf_name exists
+    #target_conf_name is same as local_conf_name
+      stat:
+        path: "{{ target_conf_dir }}/{{ local_conf_name }}"
+      register: target_conf_details
+    - debug: var=target_conf_details
 
     - name: back up "{{ local_conf_name }}" in target host
       command: mv "{{ target_conf_dir }}/{{ local_conf_name }}" "{{ target_conf_dir }}/{{ local_conf_name }}.{{ timestamp }}"
+      when: target_conf_details.stat.exists
 
-    - name: distribule conf to target server 
+    - name: distribule conf to target server
       copy:
         src: "{{ playbook_dir }}/{{ local_conf_name }}"
         dest: "{{ target_conf_dir }}/{{ local_conf_name }}"
