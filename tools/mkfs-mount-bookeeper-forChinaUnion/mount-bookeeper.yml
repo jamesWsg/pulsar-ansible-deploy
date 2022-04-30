@@ -1,0 +1,113 @@
+# bookies ledger device may have many,should manual modify according you environment
+---
+
+- hosts: bookies
+  become: yes
+  gather_facts: false
+
+  vars:
+    fstype: ext4
+    pulsar_dir: /opt/pulsar
+    pulsar_zk_data_dir: /opt/pulsar/data/zookeeper
+    pulsar_zk_txlog_dir: /opt/pulsar/data/zookeeper/txlog
+    bookieJournalDirs:
+      journal0:
+        journal_device: /dev/disk/by-partlabel/journal-0
+        journal_dir: "{{ pulsar_dir }}/data/bookkeeper/journal-0"
+      journal1:
+        journal_device: /dev/disk/by-partlabel/journal-1
+        journal_dir: "{{ pulsar_dir }}/data/bookkeeper/journal-1"
+      journal2:
+        journal_device: /dev/disk/by-partlabel/journal-2
+        journal_dir: "{{ pulsar_dir }}/data/bookkeeper/journal-2"
+      journal3:
+        journal_device: /dev/disk/by-partlabel/journal-3
+        journal_dir: "{{ pulsar_dir }}/data/bookkeeper/journal-3"
+      journal4:
+        journal_device: /dev/disk/by-partlabel/journal-4
+        journal_dir: "{{ pulsar_dir }}/data/bookkeeper/journal-4"
+      journal5:
+        journal_device: /dev/disk/by-partlabel/journal-5
+        journal_dir: "{{ pulsar_dir }}/data/bookkeeper/journal-5"      
+      journal6:
+        journal_device: /dev/disk/by-partlabel/journal-6
+        journal_dir: "{{ pulsar_dir }}/data/bookkeeper/journal-6"
+      journal7:
+        journal_device: /dev/disk/by-partlabel/journal-7
+        journal_dir: "{{ pulsar_dir }}/data/bookkeeper/journal-7"
+      journal8:
+        journal_device: /dev/disk/by-partlabel/journal-8
+        journal_dir: "{{ pulsar_dir }}/data/bookkeeper/journal-8"
+      journal9:
+        journal_device: /dev/disk/by-partlabel/journal-9
+        journal_dir: "{{ pulsar_dir }}/data/bookkeeper/journal-9"
+      journal10:
+        journal_device: /dev/disk/by-partlabel/journal-10
+        journal_dir: "{{ pulsar_dir }}/data/bookkeeper/journal-10"
+      journal11:
+        journal_device: /dev/disk/by-partlabel/journal-11
+        journal_dir: "{{ pulsar_dir }}/data/bookkeeper/journal-11"
+
+    bookieLedgerlDirs:
+      ledgers0:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-0
+        ledgers_dir: "{{ pulsar_dir }}/data/bookkeeper/ledgers-0"
+      ledgers1:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-1
+        ledgers_dir: "{{ pulsar_dir }}/data/bookkeeper/ledgers-1"
+      ledgers2:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-2
+        ledgers_dir: "{{ pulsar_dir }}/data/bookkeeper/ledgers-2"
+      ledgers3:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-3
+        ledgers_dir: "{{ pulsar_dir }}/data/bookkeeper/ledgers-3"
+      ledgers4:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-4
+        ledgers_dir: "{{ pulsar_dir }}/data/bookkeeper/ledgers-4"
+      ledgers5:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-5
+        ledgers_dir: "{{ pulsar_dir }}/data/bookkeeper/ledgers-5"
+      ledgers6:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-6
+        ledgers_dir: "{{ pulsar_dir }}/data/bookkeeper/ledgers-6"
+      ledgers7:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-7
+        ledgers_dir: "{{ pulsar_dir }}/data/bookkeeper/ledgers-7"
+      ledgers8:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-8
+        ledgers_dir: "{{ pulsar_dir }}/data/bookkeeper/ledgers-8"
+      ledgers9:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-9
+        ledgers_dir: "{{ pulsar_dir }}/data/bookkeeper/ledgers-9"
+      ledgers10:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-10
+        ledgers_dir: "{{ pulsar_dir }}/data/bookkeeper/ledgers-10"
+      ledgers11:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-11
+        ledgers_dir: "{{ pulsar_dir }}/data/bookkeeper/ledgers-11" 
+  tasks:
+    - name: mount bookie journal dirs
+      debug: msg="{{ item.key }} is mounting {{ item.value.journal_device }} to dir {{ item.value.journal_dir }}"
+      with_dict: "{{ bookieJournalDirs }}"
+
+    - name: mount bookie ledgers dirs
+      debug: msg="{{ item.key }} is mounting {{ item.value.ledgers_device }} to dir {{ item.value.ledgers_dir }}"
+      with_dict: "{{ bookieLedgerlDirs }}"
+
+    - name: mount bookie journal device
+      mount:
+        path: "{{ item.value.journal_dir }}"
+        src: "{{ item.value.journal_device }}"
+        fstype: "{{ fstype }}"
+        state: mounted
+        #state: present
+      with_dict: "{{ bookieJournalDirs }}"
+
+    - name: mount bookie ledger device
+      mount:
+        path: "{{ item.value.ledgers_dir }}"
+        src: "{{ item.value.ledgers_device }}"
+        fstype: "{{ fstype }}"
+        #state: mounted
+        state: mounted
+      with_dict: "{{ bookieLedgerlDirs }}"

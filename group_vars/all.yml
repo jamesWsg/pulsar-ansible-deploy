@@ -46,7 +46,8 @@ pulsar_log_dir: "{{ pulsar_dir }}/logs"
 
 # zookeeper
 zk_port: 2181
-zk_http_port: 7000
+# pulsar-manger will use port 7000
+zk_http_port: 7070
 
 # bookkeeper
 bookie_port: 3181

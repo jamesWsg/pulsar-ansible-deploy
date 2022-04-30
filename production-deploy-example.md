@@ -233,7 +233,7 @@ two inventory file should modify
 
 
 
-## step2: deploy pulsar dir
+## step2: deploy pulsar dir ?? No use 
 
 ```
 ansible-playbook -i inventory.ini deploy_zookeeper_dir.yml
@@ -262,11 +262,11 @@ drwxr-xr-x. 2 pulsar pulsar  6 Mar 15 13:31 pulsar
    In this example, zk use one disk
 
    ```
-   ansible zookeeper -m shell -a "sudo sgdisk /dev/sdc -n 1:0:+50G -n 2:0:+50G"
+   ansible -i inventory.ini zookeeper -m shell -a "sudo sgdisk /dev/sdc -n 1:0:+50G -n 2:0:+50G"
    
    sudo sgdisk /dev/sdc -n 1:2048  ## 单个分区使用全部磁盘空间
    # then label the partion
-   ansible zookeeper -m shell -a "sudo sgdisk /dev/sdc -c 1:"zk-data" -c 2:"zk-txlog""
+   ansible -i inventory.ini zookeeper -m shell -a "sudo sgdisk /dev/sdc -c 1:"zk-data" -c 2:"zk-txlog""
    
    
    sudo sgdisk /dev/sdc -c 1:"zk-data"
@@ -280,15 +280,19 @@ drwxr-xr-x. 2 pulsar pulsar  6 Mar 15 13:31 pulsar
    In this example, bookie use two disk, every disk have two portions(one is for journal ,the other is fo ledger)
 
    ```
-   ansible bookies -m shell -a "sudo sgdisk /dev/sdd -n 1:0:+40G -n 2:0:+50G"
-   ansible bookies -m shell -a "sudo sgdisk /dev/sdd -c 1:"journal-0" -c 2:"ledgers-0""
+   ansible -i inventory.ini bookies -m shell -a "sudo sgdisk /dev/sdd -n 1:0:+40G -n 2:0:+50G"
+   ansible -i inventory.ini bookies -m shell -a "sudo sgdisk /dev/sdd -c 1:"journal-0" -c 2:"ledgers-0""
    
-   ansible bookies -m shell -a "sudo sgdisk /dev/sde -n 1:0:+40G -n 2:0:+50G"
-   ansible bookies -m shell -a "sudo sgdisk /dev/sde -c 1:"journal-1" -c 2:"ledgers-1""
+   ansible -i inventory.ini bookies -m shell -a "sudo sgdisk /dev/sde -n 1:0:+40G -n 2:0:+50G"
+   ansible -i inventory.ini bookies -m shell -a "sudo sgdisk /dev/sde -c 1:"journal-1" -c 2:"ledgers-1""
    
+   ## 如果第二个分区想用完所有空间，
+   sudo sgdisk /dev/sdd -n 1:0:+40G -n 2:0:
    ```
 
    > if want to delete disk partion, use `ansible bookies -m shell -a "sudo sgdisk -z /dev/sdc"`
+   >
+   > 
    >
    > 
 
@@ -354,7 +358,7 @@ And check  fstab
 ## step6: change zk device mount path owner
 
 ```
-ansible zookeeper -m shell -a "sudo chown -R pulsar:pulsar /opt/pulsar"
+ansible-playbook -i inventory.ini zookeeper -m shell -a "sudo chown -R pulsar:pulsar /opt/pulsar"
 ```
 
 ## step7: deploy zookeeper(metadata service)

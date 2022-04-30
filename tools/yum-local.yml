@@ -3,16 +3,19 @@
 - hosts: all
   become: yes
   gather_facts: false
+  vars:
+    download_dir: /opt/pulsar
+
   tasks:
+    
+    - name: cp java rpm to server
+      copy:
+        src: "{{ download_dir}}/jdk-{{ jdk_version }}_linux-x64_bin.rpm"
+        dest: "/tmp/jdk-{{ jdk_version }}_linux-x64_bin.rpm"
 
-
-    - name:  batch packages install
+    - name: install  java rpm
       yum:
-        name: "{{ packages }}"
-        #state: present
-        state: removed
-      vars:
-        packages:
-        - sgdisk
-        - telnet
-            
+        name: "/tmp/jdk-{{ jdk_version }}_linux-x64_bin.rpm"
+        state: present
+
+

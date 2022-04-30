@@ -1,0 +1,77 @@
+# bookies journal and ledger device may have many,should manual modify according you environment
+---
+
+- hosts: bookies
+  become: yes
+  gather_facts: false
+
+  vars:
+    fstype: ext4
+    pulsar_dir: /opt/pulsar
+    bookieJournalDirs:
+      journal0:
+        journal_device: /dev/disk/by-partlabel/journal-0
+      journal1:
+        journal_device: /dev/disk/by-partlabel/journal-1
+      journal2:
+        journal_device: /dev/disk/by-partlabel/journal-2
+      journal3:
+        journal_device: /dev/disk/by-partlabel/journal-3
+      journal4:
+        journal_device: /dev/disk/by-partlabel/journal-4
+      journal5:
+        journal_device: /dev/disk/by-partlabel/journal-5
+      journal6:
+        journal_device: /dev/disk/by-partlabel/journal-6
+      journal7:
+        journal_device: /dev/disk/by-partlabel/journal-7
+      journal8:
+        journal_device: /dev/disk/by-partlabel/journal-8
+      journal9:
+        journal_device: /dev/disk/by-partlabel/journal-9
+      journal10:
+        journal_device: /dev/disk/by-partlabel/journal-10
+      journal11:
+        journal_device: /dev/disk/by-partlabel/journal-11
+
+    bookieLedgerlDirs:
+      ledgers0:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-0
+      ledgers1:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-1
+      ledgers2:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-2
+      ledgers3:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-3
+      ledgers4:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-4
+      ledgers5:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-5
+      ledgers6:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-6
+      ledgers7:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-7
+      ledgers8:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-8
+      ledgers9:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-9
+      ledgers10:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-10
+      ledgers11:
+        ledgers_device: /dev/disk/by-partlabel/ledgers-11
+  tasks:
+
+
+
+    - debug: var=fstype
+    - name: Create bookie journal device fs "{{ fstype }}" in "{{ item.key }}"
+      filesystem:
+        dev: "{{ item.value.journal_device  }}"
+        fstype: "{{ fstype }}"
+      with_dict: "{{ bookieJournalDirs }}"
+
+    - name: Create bookie ledgers device fs "{{ fstype }}" in "{{ item.key }}"
+      filesystem:
+        dev: "{{ item.value.ledgers_device  }}"
+        fstype: "{{ fstype }}"
+      with_dict: "{{ bookieLedgerlDirs }}"

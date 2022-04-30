@@ -1,0 +1,15 @@
+---
+- hosts: bookies
+  vars:
+    - target_conf_dir: /opt/pulsar/current/conf
+    - target_conf_name:  bkenv.sh
+    #- local_dir: {{ playbook}}
+
+
+
+  tasks:
+    - name:  fetch file from remote server 
+      fetch:
+        src: "{{ target_conf_dir }}/{{ target_conf_name }}"
+        dest: "{{ playbook_dir }}/tmp/{{ target_conf_name }}-{{ inventory_hostname }}"
+        flat: yes
