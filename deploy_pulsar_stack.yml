@@ -19,3 +19,5 @@
 - import_playbook: playbooks/start_node_exporter.yml
 - import_playbook: deploy_grafana.yml
 - import_playbook: playbooks/start_grafana.yml
+
+- import_playbook: deploy_bookkeeper_autorecovery.yml

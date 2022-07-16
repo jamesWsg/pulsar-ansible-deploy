@@ -233,23 +233,13 @@ two inventory file should modify
 
 
 
-## step2: deploy pulsar dir ?? No use 
+## step2: deploy host_preconfig
 
 ```
-ansible-playbook -i inventory.ini deploy_zookeeper_dir.yml
+ansible-playbook -i inventory.ini deploy_host_preconfig.yml
 ```
 
-The command will create `/opt/pulsar` directory(own to pulsar user) in all target host  as following
-
-```
-[pulsar@redhat1 ~]$ ll /opt/
-total 0
-drwxr-xr-x. 2 pulsar pulsar  6 Mar 15 13:31 pulsar
-```
-
-> If pulsar directory not own to pulsar user, following steps will fail
-
-
+Modify  hosts config include kernel patameter and swap 
 
 
 
